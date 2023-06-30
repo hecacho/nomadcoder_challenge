@@ -1,10 +1,10 @@
 class Dictionary {
   List wordBook = [];
 
-  Map<String, String> newWord = {"term": "", "definition": ""};
-
   //단어 추가
   void add(String term, String definition) {
+    Map<String, String> newWord = {"term": "", "definition": ""};
+
     newWord["term"] = term;
     newWord["definition"] = definition;
     print(newWord);
@@ -60,9 +60,17 @@ class Dictionary {
     return false;
   }
 
-  void bulkAdd(List) {}
+  void bulkAdd(List words) {
+    for (var word in words) {
+      add(word["term"], word["definition"]);
+    }
+  }
 
-  void bulkDelete() {}
+  void bulkDelete(List words) {
+    for (var word in words) {
+      delete(word);
+    }
+  }
 }
 
 void main() {
@@ -99,5 +107,13 @@ void main() {
   myDictionary.upsert("internet explore", "his gone...");
 
   myDictionary.showAll();
+  myDictionary.count();
+
+  myDictionary.bulkAdd([{"term" : "안드로이드", "definition" : "android"}, {"term" : "애플", "definition" : "ios"}]);
+  myDictionary.showAll();
+  myDictionary.count();
+
+  myDictionary.bulkDelete(["김치", "holly"]);
+    myDictionary.showAll();
   myDictionary.count();
 }
