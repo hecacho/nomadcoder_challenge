@@ -1,6 +1,18 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
+
+List<Color> colorSet = [
+  const Color(0xFFFFB84C),
+  const Color(0xFFF266AB),
+  const Color(0xFFA459D1),
+  const Color(0xFF2CD3E1),
+  const Color(0xFF41644A),
+  const Color(0xFF009FBD),
+  const Color(0xFFAD7BE9),
+  const Color(0XFFFF6E31),
+  const Color(0xFF1C315F),
+  const Color(0xFF4856D2),
+];
 
 void main() {
   runApp(const MyApp());
@@ -61,172 +73,65 @@ class MyApp extends StatelessWidget {
               ),
               const Text(
                 "Monday 16",
-                style: TextStyle(fontSize: 18, color: Colors.white),
+                style: TextStyle(fontSize: 35, color: Colors.white),
               ),
               const SizedBox(
-                height: 20,
+                height: 10,
               ),
               Expanded(
                 flex: 1,
-                child: ListView(
+                child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  children: const [
-                    Text(
-                      " Today ",
-                      style: TextStyle(
-                        fontSize: 45,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      " 15 ",
-                      style: TextStyle(
-                        fontSize: 45,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      " 16 ",
-                      style: TextStyle(
-                        fontSize: 45,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      " 17 ",
-                      style: TextStyle(
-                        fontSize: 45,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      " 18 ",
-                      style: TextStyle(
-                        fontSize: 45,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      " 19 ",
-                      style: TextStyle(
-                        fontSize: 45,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      " 20 ",
-                      style: TextStyle(
-                        fontSize: 45,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      " 21 ",
-                      style: TextStyle(
-                        fontSize: 45,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      " 22 ",
-                      style: TextStyle(
-                        fontSize: 45,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+                  itemCount: 30,
+                  itemBuilder: (context, index) {
+                    if (index == 7) {
+                      return const Text(
+                        "Today",
+                        style: TextStyle(
+                            fontSize: 40,
+                            color: Color(0xFF000000),
+                            fontWeight: FontWeight.w600),
+                      );
+                    } else {
+                      return Text(
+                        '${index + 1}',
+                        style: const TextStyle(
+                            fontSize: 40, color: Color(0xFF999999)),
+                      );
+                    }
+                  },
+                  separatorBuilder: (context, index) => const SizedBox(
+                    width: 30,
+                  ),
                 ),
               ),
               const SizedBox(
                 height: 30,
               ),
+              const Text(
+                "Todo",
+                style: TextStyle(
+                  fontSize: 35,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 15,),
               Expanded(
                 flex: 10,
-                child: ListView(
-                  children: [
-                    Container(
-                      height: 200,
-                      decoration: const BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.all(Radius.circular(40)),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          "DESIGN MEETING",
-                          style: TextStyle(
-                              fontSize: 65, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    Container(
-                      height: 200,
-                      decoration: const BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.all(Radius.circular(40)),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          "DESIGN MEETING",
-                          style: TextStyle(
-                              fontSize: 65, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    Container(
-                      height: 200,
-                      decoration: const BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.all(Radius.circular(40)),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          "DESIGN MEETING",
-                          style: TextStyle(
-                              fontSize: 65, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    Container(
-                      height: 200,
-                      decoration: const BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.all(Radius.circular(40)),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          "DESIGN MEETING",
-                          style: TextStyle(
-                              fontSize: 65, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    Container(
-                      height: 200,
-                      decoration: const BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.all(Radius.circular(40)),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          "DESIGN MEETING",
-                          style: TextStyle(
-                              fontSize: 65, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                  ],
+                child: ListView.separated(
+                  itemCount: 5,
+                  itemBuilder: (context, index) {
+                    return TodoListTile(
+                      title: "Programming",
+                      startTime: "13:20",
+                      endTime: "14:20",
+                      detail: "study Flutter hard!",
+                      backgroundColor: colorSet[index],
+                    );
+                  },
+                  separatorBuilder: (context, index) => const SizedBox(
+                    height: 20,
+                  ),
                 ),
               )
             ],
@@ -237,8 +142,77 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class TodoListTile extends StatefulWidget {
+  final String title;
+  final String startTime, endTime;
+  final String detail;
+  final Color backgroundColor;
 
-//부족한 부분
-//Layout 깔끔하게 잡는법
-//ListView saperated같은거도 사용법 익숙해지기
-//theme 사용법 익히기
+  const TodoListTile({
+    super.key,
+    required this.title,
+    required this.startTime,
+    required this.endTime,
+    required this.detail,
+    required this.backgroundColor,
+  });
+
+  @override
+  State<TodoListTile> createState() => _TodoListTileState();
+}
+
+class _TodoListTileState extends State<TodoListTile> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        height: 180,
+        decoration: BoxDecoration(
+          color: widget.backgroundColor,
+          borderRadius: const BorderRadius.all(Radius.circular(30)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      style: const TextStyle(
+                        fontSize: 50,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.check_box_outline_blank),
+                  ),
+                ],
+              ),
+              Text(
+                "${widget.startTime} ~ ${widget.endTime}",
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black38,
+                ),
+              ),
+              const SizedBox(
+                height: 15,
+              ),
+              Text(
+                widget.detail,
+                style: const TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ));
+  }
+}
