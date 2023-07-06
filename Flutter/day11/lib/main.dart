@@ -49,11 +49,26 @@ class _MyPomodoroScreenState extends State<MyPomodoroScreen> {
     55,
     60
   ]; //totalSec설정시 사용될 리스트
-  var totalSec = 1500; //설정한 카운트시간(default = 1500초)
+  var totalSec = 1500; //시간 카운터
+  var totalPomodoroSec = 1500; //설정한  Pomodoro 카운트시간(default = 1500초)
   var passedSec = 0; //지나간 시간(초)
-  bool isRunning = false; //타이머가 작동중인지
+  var totalRestSec = 10; //설정한 Rest모드 카운트시간(default = 300)
   var goalCount = 0; //달성한 POMODORO 횟수
+  late String formattedTime; //MM:SS형식으로 format한 타이머
+  bool isRunning = false; //타이머가 작동중인지
+  bool isRestTime = false; //Rest time, Pomodoro time 2가지 존재
   late Timer timer;
+
+  String formatDuration(Duration d) {
+    String twoDigits(int n) {
+      if (n >= 10) return "$n";
+      return "0$n";
+    }
+
+    String twoDigitMinutes = twoDigits(d.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(d.inSeconds.remainder(60));
+    return "$twoDigitMinutes:$twoDigitSeconds";
+  }
 
   void onClickStart() {
     timer = Timer.periodic(
@@ -61,15 +76,18 @@ class _MyPomodoroScreenState extends State<MyPomodoroScreen> {
       (timer) {
         setState(() {
           if (passedSec < totalSec) {
-            //카운트
             passedSec++;
+            formattedTime =
+                formatDuration(Duration(seconds: totalSec - passedSec));
             isRunning = true;
           } else {
-            //카운트가 끝나면
-            goalCount++;
+            if (!isRestTime) {
+              goalCount++;
+            }
             passedSec = 0;
             timer.cancel();
             isRunning = false;
+            changeMode();
           }
         });
       },
@@ -83,17 +101,36 @@ class _MyPomodoroScreenState extends State<MyPomodoroScreen> {
     });
   }
 
+  //Pomodoro와 Rest모드 변경
+  void changeMode() {
+    //카운터 세팅 변경
+    if (isRestTime) {
+      totalSec = totalPomodoroSec;
+    } else {
+      totalSec = totalRestSec;
+    }
+    formattedTime = formatDuration(Duration(seconds: totalSec - passedSec));
+    //카운터 모드 변경
+    isRestTime = !isRestTime;
+  }
+
+  @override
+  void initState() {
+    formattedTime = formatDuration(Duration(seconds: totalSec));
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.red,
+        backgroundColor: isRestTime ? Colors.green : Colors.red,
         body: Padding(
           padding: const EdgeInsets.all(25),
           child: Column(
             children: [
-              const Text(
-                "Pomodoro",
-                style: TextStyle(
+              Text(
+                isRestTime ? "Rest Mode" : "Pomodoro Mode",
+                style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
                     color: Colors.white),
@@ -102,7 +139,7 @@ class _MyPomodoroScreenState extends State<MyPomodoroScreen> {
                 height: 180,
               ),
               Text(
-                "${totalSec - passedSec}",
+                formattedTime,
                 style: const TextStyle(
                     fontSize: 100,
                     fontWeight: FontWeight.w600,
@@ -122,6 +159,8 @@ class _MyPomodoroScreenState extends State<MyPomodoroScreen> {
                         setState(() {
                           totalSec = totalMin[index] * 60;
                           passedSec = 0;
+                          formattedTime = formatDuration(
+                              Duration(seconds: totalSec - passedSec));
                         });
                       },
                       child: Container(
@@ -151,6 +190,17 @@ class _MyPomodoroScreenState extends State<MyPomodoroScreen> {
               ),
               const SizedBox(
                 height: 120,
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    totalSec = 10;
+                    passedSec = 0;
+                    formattedTime =
+                        formatDuration(Duration(seconds: totalSec - passedSec));
+                  });
+                },
+                child: const Text("Test"),
               ),
               IconButton(
                 constraints: const BoxConstraints.tightFor(
@@ -220,3 +270,13 @@ class _MyPomodoroScreenState extends State<MyPomodoroScreen> {
         ));
   }
 }
+
+//Todo
+// Play버튼 누르면 즉시 아이콘 변경
+// 시간설정 관련 - Rest Mode 시간설정(중도변경은 x 초기 설정o), Pomodoro Mode 플레이하면 시간설정창 x
+//타이머 리셋 + 완전리셋
+//타이머에 맞는 진행률 바
+//ListView 가장자리 투명도 주기
+//라운드 끝나면 bigRestTime모드 만들어서 배경색 검정, 쉬는시간 크게... + isRestMode -> enum으로 mode변수 다시 구성
+//RestMode는 시작되자마자 타이머 자동재생
+//카운터 위젯으로 꾸미기
