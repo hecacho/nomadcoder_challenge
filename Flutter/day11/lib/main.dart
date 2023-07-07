@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:day11/my_widgets/timer_button.dart';
 
 void main() {
   runApp(const MyApp());
@@ -49,10 +50,11 @@ class _MyPomodoroScreenState extends State<MyPomodoroScreen> {
     55,
     60
   ]; //totalSec설정시 사용될 리스트
+  var selectedMinIndex = 3; //선택된 시간 인덱스
   var totalSec = 1500; //시간 카운터
   var totalPomodoroSec = 1500; //설정한  Pomodoro 카운트시간(default = 1500초)
   var passedSec = 0; //지나간 시간(초)
-  var totalRestSec = 10; //설정한 Rest모드 카운트시간(default = 300)
+  var totalRestSec = 300; //설정한 Rest모드 카운트시간(default = 300)
   var goalCount = 0; //달성한 POMODORO 횟수
   late String formattedTime; //MM:SS형식으로 format한 타이머
   bool isRunning = false; //타이머가 작동중인지
@@ -71,22 +73,29 @@ class _MyPomodoroScreenState extends State<MyPomodoroScreen> {
   }
 
   void onClickStart() {
+    setState(() {
+      isRunning = true;
+    });
     timer = Timer.periodic(
-      const Duration(seconds: 1),
+      const Duration(milliseconds: 3),
       (timer) {
         setState(() {
           if (passedSec < totalSec) {
+            //타이머가 남아있을경우
             passedSec++;
             formattedTime =
                 formatDuration(Duration(seconds: totalSec - passedSec));
-            isRunning = true;
           } else {
+            //타이머가 0이 될 경우
             if (!isRestTime) {
+              //Pomodoro모드였을경우
               goalCount++;
+            } else {
+              //Rest모드였을경우
+              timer.cancel();
+              isRunning = false;
             }
             passedSec = 0;
-            timer.cancel();
-            isRunning = false;
             changeMode();
           }
         });
@@ -145,73 +154,145 @@ class _MyPomodoroScreenState extends State<MyPomodoroScreen> {
                     fontWeight: FontWeight.w600,
                     color: Colors.white),
               ),
+              SizedBox(
+                width: 350,
+                child: LinearProgressIndicator(
+                  value: passedSec / totalSec, // 0.0 ~ 1.0 사이의 값
+                  backgroundColor: Colors.grey[200],
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                      Color.fromARGB(255, 163, 163, 163)),
+                ),
+              ),
               const SizedBox(
                 height: 70,
               ),
               SizedBox(
                 height: 50,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 10,
-                  itemBuilder: (context, index) {
-                    return InkWell(
-                      onTap: () {
-                        setState(() {
-                          totalSec = totalMin[index] * 60;
-                          passedSec = 0;
-                          formattedTime = formatDuration(
-                              Duration(seconds: totalSec - passedSec));
-                        });
-                      },
-                      child: Container(
-                        height: 20,
-                        width: 60,
-                        decoration: BoxDecoration(
-                            border: Border.all(
-                          color: Colors.white.withOpacity(0.6),
-                          width: 3,
-                        )),
-                        child: Center(
-                          child: Text(
-                            "${totalMin[index]}",
-                            style: const TextStyle(
-                                fontSize: 24,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600),
+                child: isRunning || isRestTime || goalCount != 0
+                    ? null
+                    : Stack(
+                        children: <Widget>[
+                          ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: totalMin.length,
+                            itemBuilder: (context, index) {
+                              return TimerButton(
+                                value: totalMin[index],
+                                onClick: () {
+                                  setState(() {
+                                    passedSec = 0;
+                                    totalPomodoroSec = totalMin[index] * 60;
+                                    totalSec = totalPomodoroSec;
+                                    formattedTime = formatDuration(Duration(
+                                        seconds: totalSec - passedSec));
+                                  });
+                                },
+                              );
+                            },
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(
+                              width: 15,
+                            ),
                           ),
-                        ),
+                          Positioned(
+                            top: 0,
+                            bottom: 0,
+                            left: 0,
+                            child: IgnorePointer(
+                              child: Container(
+                                width: 130.0,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.black.withOpacity(0.35),
+                                      Colors.black.withOpacity(0.0)
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 0,
+                            bottom: 0,
+                            right: 0,
+                            child: IgnorePointer(
+                              child: Container(
+                                width: 130.0,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.black.withOpacity(0.0),
+                                      Colors.black.withOpacity(0.35)
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                  separatorBuilder: (context, index) => const SizedBox(
-                    width: 15,
-                  ),
-                ),
               ),
               const SizedBox(
                 height: 120,
               ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    totalSec = 10;
-                    passedSec = 0;
-                    formattedTime =
-                        formatDuration(Duration(seconds: totalSec - passedSec));
-                  });
-                },
-                child: const Text("Test"),
-              ),
-              IconButton(
-                constraints: const BoxConstraints.tightFor(
-                  width: 100,
-                  height: 100,
-                ),
-                onPressed: isRunning ? onClickPause : onClickStart,
-                icon: isRunning
-                    ? const Icon(Icons.pause, size: 70, color: Colors.white)
-                    : const Icon(Icons.play_arrow,
-                        size: 70, color: Colors.white),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    hoverColor: const Color(0x00000000),
+                    focusColor: const Color(0x00000000),
+                    highlightColor: const Color(0x00000000),
+                    splashColor: const Color(0x00000000),
+                    constraints: const BoxConstraints.tightFor(
+                      width: 100,
+                      height: 100,
+                    ),
+                    onPressed: isRunning ? onClickPause : onClickStart,
+                    icon: isRunning
+                        ? const Icon(Icons.pause, size: 70, color: Colors.white)
+                        : const Icon(Icons.play_arrow,
+                            size: 70, color: Colors.white),
+                  ),
+                  SizedBox(
+                    child: isRunning || isRestTime
+                        ? null
+                        : GestureDetector(
+                            onLongPress: () {
+                              setState(() {
+                                goalCount = 0;
+                                passedSec = 0;
+                                formattedTime = formatDuration(
+                                    Duration(seconds: totalSec - passedSec));
+                              });
+                            },
+                            child: IconButton(
+                              hoverColor: const Color(0x00000000),
+                              focusColor: const Color(0x00000000),
+                              highlightColor: const Color(0x00000000),
+                              splashColor: const Color(0x00000000),
+                              padding: const EdgeInsets.all(0.0),
+                              constraints: const BoxConstraints.tightFor(
+                                width: 40,
+                                height: 40,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  passedSec = 0;
+                                  formattedTime = formatDuration(
+                                      Duration(seconds: totalSec - passedSec));
+                                });
+                              },
+                              icon: const Icon(Icons.restart_alt,
+                                  size: 20, color: Colors.white),
+                            ),
+                          ),
+                  ),
+                ],
               ),
               const SizedBox(
                 height: 100,
@@ -272,11 +353,6 @@ class _MyPomodoroScreenState extends State<MyPomodoroScreen> {
 }
 
 //Todo
-// Play버튼 누르면 즉시 아이콘 변경
-// 시간설정 관련 - Rest Mode 시간설정(중도변경은 x 초기 설정o), Pomodoro Mode 플레이하면 시간설정창 x
-//타이머 리셋 + 완전리셋
-//타이머에 맞는 진행률 바
-//ListView 가장자리 투명도 주기
+//리셋버튼 클릭범위 줄이기
 //라운드 끝나면 bigRestTime모드 만들어서 배경색 검정, 쉬는시간 크게... + isRestMode -> enum으로 mode변수 다시 구성
-//RestMode는 시작되자마자 타이머 자동재생
 //카운터 위젯으로 꾸미기
