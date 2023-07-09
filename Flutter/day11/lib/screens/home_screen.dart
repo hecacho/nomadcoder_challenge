@@ -4,6 +4,13 @@ import 'package:flutter/material.dart';
 import './setting_screen.dart';
 import '../my_widgets/timer_button.dart';
 
+enum TimerMode {
+  pomodoro,
+  smallRest,
+  roundRest,
+  clear,
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -12,6 +19,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  Color backgroundColor = Colors.red;
+  var timerModeName = "PomodoroMode";
   final totalMin = [
     15,
     20,
@@ -32,8 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
   var goalCount = 0; //달성한 POMODORO 횟수
   late String formattedTime; //MM:SS형식으로 format한 타이머 시간
   bool isTimerRunning = false; //타이머가 작동중인지
-  bool isRestTime = false; //Rest time, Pomodoro time 2가지 존재
   late Timer timer;
+  TimerMode timerMode = TimerMode.pomodoro; //동작하는 타이머의 모드 설정
 
   //Sec형식의 타이머를 MM:DD형식으로 formatting
   String toFormattedTime(Duration d) {
@@ -46,37 +55,20 @@ class _HomeScreenState extends State<HomeScreen> {
     String twoDigitSeconds = toTwoDigits(d.inSeconds.remainder(60));
     return "$twoDigitMinutes:$twoDigitSeconds";
   }
+
   //Timer의 Play버튼을 누르면
   void onClickStart() {
-    setState(() {
-      isTimerRunning = true;
-    });
     timer = Timer.periodic(
       const Duration(milliseconds: 3),
       (timer) {
-        setState(() {
-          if (passedSec < totalSec) {
-            //타이머가 남아있을경우
-            passedSec++;
-            formattedTime =
-                toFormattedTime(Duration(seconds: totalSec - passedSec));
-          } else {
-            //타이머가 0이 될 경우
-            if (!isRestTime) {
-              //Pomodoro모드였을경우
-              goalCount++;
-            } else {
-              //Rest모드였을경우
-              timer.cancel();
-              isTimerRunning = false;
-            }
-            passedSec = 0;
-            changeMode();
-          }
-        });
+        timerTick();
       },
     );
+    setState(() {
+      isTimerRunning = true;
+    });
   }
+
   //Timer의 Pause버튼을 누르면
   void onClickPause() {
     setState(() {
@@ -85,17 +77,70 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  //Pomodoro와 Rest모드 변경
-  void changeMode() {
-    //카운터 세팅 변경
-    if (isRestTime) {
-      totalSec = totalPomodoroSec;
-    } else {
-      totalSec = totalRestSec;
+  //타이머의 모드 변경
+  void changeMode(TimerMode targetMode) {
+    passedSec = 0;
+    switch (targetMode) {
+      case TimerMode.pomodoro:
+        //위젯 속성 세팅
+        backgroundColor = Colors.red;
+        timerModeName = "Pomodoro Mode";
+        //타이머 세팅
+        totalSec = totalPomodoroSec;
+        timerMode = TimerMode.pomodoro;
+        break;
+
+      case TimerMode.smallRest:
+        //위젯 속성 세팅
+        backgroundColor = Colors.green;
+        timerModeName = "Small Rest Mode";
+        //타이머 세팅
+        totalSec = totalRestSec;
+        timerMode = TimerMode.smallRest;
+        break;
+
+      case TimerMode.roundRest:
+        //위젯 속성 세팅
+        backgroundColor = Colors.black45;
+        timerModeName = "Round Rest Mode";
+        //타이머 세팅
+        timerMode = TimerMode.roundRest;
+        break;
+
+      case TimerMode.clear:
+        break;
     }
     formattedTime = toFormattedTime(Duration(seconds: totalSec - passedSec));
-    //카운터 모드 변경
-    isRestTime = !isRestTime;
+  }
+
+  void timerTick() {
+    setState(() {
+      if (passedSec < totalSec) {
+        //타이머가 남아있을경우
+        passedSec++;
+        formattedTime =
+            toFormattedTime(Duration(seconds: totalSec - passedSec));
+      } else {
+        //타이머종료시
+        if (timerMode == TimerMode.pomodoro) {
+          //Pomodoro모드 타이머종료시
+          goalCount++;
+          if (goalCount == 12) {
+            //목표를 달성하면
+            changeMode(TimerMode.clear);
+          } else if (goalCount % 4 == 0) {
+            //라운드를 클리어하면
+            changeMode(TimerMode.roundRest);
+          } else {
+            //단순 1사이클 클리어하면
+            changeMode(TimerMode.smallRest);
+          }
+        } else {
+          //smallRest, roundRest모드 타이머종료시
+          changeMode(TimerMode.pomodoro);
+        }
+      }
+    });
   }
 
   @override
@@ -107,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: isRestTime ? Colors.green : Colors.red,
+      backgroundColor: backgroundColor,
       body: Padding(
         padding: const EdgeInsets.all(25),
         child: Column(
@@ -130,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 Text(
-                  isRestTime ? "Rest Mode" : "Pomodoro Mode",
+                  timerModeName,
                   style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
@@ -162,7 +207,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(
               height: 50,
-              child: isTimerRunning || isRestTime || goalCount != 0
+              child: isTimerRunning ||
+                      timerMode == TimerMode.smallRest ||
+                      goalCount != 0
                   ? null
                   : Stack(
                       children: <Widget>[
@@ -252,7 +299,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           size: 70, color: Colors.white),
                 ),
                 SizedBox(
-                  child: isTimerRunning || isRestTime
+                  child: isTimerRunning || timerMode == TimerMode.smallRest
                       ? null
                       : GestureDetector(
                           onLongPress: () {
